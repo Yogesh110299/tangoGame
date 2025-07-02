@@ -1,0 +1,160 @@
+BCP Gamification- Puzzle
+				
+ 		=		 
+	
+X			=
+=				 
+		X		
+
+=	 			
+
+•	 = A “Safe” symbol (like a shield icon), (Prepared resource, backup, redundant service)
+•	 = A “Risk” symbol (like a warning triangle), (Exposure, untested plan, single point of failure).
+•	== Equal number of safe and risk in this row/column.
+•	X= These two adjacent cells cannot be the same symbol.
+[Instruction Box]
+•	Fill each cell with either a Safe or a Risk icon.
+•	No more than 2 of the same symbols can be adjacent (Horizontally or vertically).
+•	Follow hints like ‘=’ for equal counts and ‘X’ for separation.
+•	Complete the puzzle to unlock a BCP tip or scenario!
+Goal:
+•	Fill the grid following rules to simulate balanced risk management and operational resilience.
+
+
+
+Rules:
+•	Each cell must be filled with either a Shield (Safe) or Warning (Risk).
+•	No more than 2 of the same symbols can be adjacent (Horizontally or vertically).
+•	Some cells will be pre-filled to start.
+•	Rows and columns may have hints:
+o	‘=’ symbol: Equal number of Safe and Risk symbols in this row/column.
+o	‘X’ symbol: These two adjacent cells cannot have the same symbol.
+•	When completed, a success message display with a BCP tip or question.
+
+Concept:
+•	A “Safe” symbol (like a shield icon)
+•	A “Risk” symbol (like a warning triangle)
+Rules:
+•	No more than 2 of the same type (Safe or Risk) can be adjacent horizontal or vertical.
+•	Each row/column might have a pre-set number of safes/risks.
+•	Some cells may be pre-filled.
+•	Special BCP scenarios can be revealed as players clear sections of the grid correctly.
+
+BCP Themes to Integrate:
+•	Safe Cells = Prepared assets, data backups, recovery plans in place.
+•	Risk cells= Single points of failure, untested recovery procedures, or system vulnerabilities.
+Optional rule ideas:
+•	“=” Lines indicate equal numbers of Safe and Risk in that row/column.
+•	‘X’ lines indicate those two cells can’t have the same symbol (Like segregation of duties or backup site separation).
+•	Completing the grid triggers a short BCP tip or scenario reflection question.
+
+
+
+How to Host on Share Point:
+•	Use custom HTML + JavaScript embedded web part (possible in modern SharePoint Online) to host the puzzle.
+•	Or use Power Apps integrated into SharePoint to make an interactive version.
+•	Add leaderboards, time tracking, or badges for completions.
+•	Display BCP tips or mini-scenarios on successful puzzle completion (like “ You have successfully balanced your DR site workloads!” or “Well Done! You’ve Balanced Your BCP Plan!”).
+Leaderboard (Optional)
+•	Fastest Times
+•	Most Puzzles Completed This Month
+Gamification Extras:
+•	Time your completion and display top 5 fastest on SharePoint.
+•	Include a “Did You know?” BCP fact after each round.
+•	Reward participation with a digital badge or e-certificate.
+Gamification Benefits:
+•	Engage staff with BCP concepts in a fun, interactive way.
+•	Reinforces operational resilience principles (redundancy segregation, balanced distribution of risk).
+•	Promote awareness about disaster recovery planning in a casual setting.
+•	Can tie into quarterly BCP awareness campaigns or tabletop exercises.
+
+
+Recommended Rounds Structure
+•	Total Rounds: 4 (Each round with increasing difficulty and a focused BCP theme)
+Round 1: Basics Of Risk Identification
+Puzzle Difficulty: Easy ( 4x4 or 5x5 grid)
+BCP Tip: Identifying risks early is the first step to ensuring operational resilience. Regularly review your single point of failure.
+Round 2: Backup and Redundancy Planning:
+Puzzle Difficulty: Medium (5x5 grid with X and = constraints)
+BCP Tip: Ensure critical system have redundant backups. Testing your failover plans regularly can prevent unexpected downtime.
+
+Round 3 : Crisis Response and Communication Flow
+Puzzle Difficulty: Challenging(6X6 grid)
+BCP Tip: Effective crisis communication ensures timely information reaches the right people. Define and test your communication matrix quarterly.
+
+Round 4: End-to-End BCP Simulation
+Puzzle Difficulty: Advanced (7x7 with tight constraints)
+BCP Tip: A well-tested BCP covers people’s processes, and technology. Regular end-to-end simulations improve recovery time objectives (RTO) and resilience readiness.
+Additional Ideas:
+•	Unlock each round sequentially as the previous one is completed.
+•	Display a fun fact or BCP incident case study snippet after each puzzle.
+•	Include a leaderboard by total rounds completed and average completion time.
+
+Round 1 – The Great Coffee Spill Crisis
+In 2019, a panicked intern at a tech firm spilled an entire cup of coffee onto the main server. The Company had no BCP or redundant system.
+Results: 6 hours of downtime, no access to email and a new office rule: no beverages near IT equipment. Lesson: Protect your assets- and your coffee.
+Round 2 – The Wi-Fi Apocalypse
+A famous retail chain’s entire branch network went down because someone unplugged the router to charge their phone. 
+No internet, no BCP call tree and no sales for 4 hours,
+Moral: Always plan for the human factor. and maybe invest in a multi-port charger.
+ 
+Round 3 – The mystery IT Guy
+During a planned data center drill, the company realized no one knew how to initiate the recovery plan because the IT guy had left.. 3 years ago. There was no updated contact list.
+BCP Tip: Update your escalation matrix before your IT guy turns into an urban legend.
+
+Round 4: The Zombie Invasion tabletop”
+A team ran BCP tabletop exercise using a zombie outbreak scenario. It went viral and the fake news reached the local media, The company had to issue a press release clarifying it wasn’t real.
+Lesson: Creative BCP scenarios are great- just remember to tell everyone it’s a drill.
+
+BCP Continuity Grid Challenge- Visuals 
+Round 1: The Great Coffee Spill Crisis
+Theme: Risk Identification Basics
+Grid Layout:
+4x4 grid
+•	2 pre-filled cells
+•	1 row with=hint
+•	1 pair of X hints
+Visual Example:
+
+On Completion Message:
+Crisis Averted! Remember: No drinks near servers’
+
+
+
+
+Round 2 : The Wi-Fi Apocalypse
+Theme: Redundancy Planning
+Grid layout
+5x5 grid
+•	3 pre-filled cells
+•	2 rows/columns with=
+•	2 pairs of X
+Visual Example
+
+On completion Message:
+Wi-Fi restored And so are sales.
+
+Round 3: The Mystery IT Guy
+Theme: Communication Flow
+Grid layout:
+6x6 grid
+•	4 pre-filled cells
+•	3=hints
+•	3xpairs
+Visual Example
+
+On Completion Message:
+‘Somone call IT!
+
+Round 4: The Zombie Invasion Tabletop
+Theme: End-to-End BCP Simulation
+Grid Layout
+7x7 grid
+•	5-6 pre-filled cells
+•	4= hints
+•	4-5 X pairs
+Visual Example:
+
+On Completion Message:
+‘Outbreak contained. Next drill: alien invasion?
+
