@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BCP Continuity Grid Challenge</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff8c42, #ff6b1a, #e55100);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .game-container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: #e55100;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    #levelTitle {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+      color: #ff6b1a;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .timer-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: linear-gradient(90deg, #fff3e0, #ffe0b2);
+      border-radius: 15px;
+      border: 2px solid #ffb74d;
+    }
+    
+    .timer {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #e65100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .level-indicator {
+      background: #ff9800;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    
+    #grid {
+      display: grid;
+      gap: 2px;
+      justify-content: center;
+      margin: 20px auto;
+      padding: 20px;
+      background: linear-gradient(45deg, #fff8f3, #fff);
+      border-radius: 15px;
+      border: 3px solid #ffb74d;
+      width: fit-content;
+    }
+    
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(145deg, #ffffff, #f5f5f5);
+      border: 3px solid #ffcc80;
+      font-size: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cell:hover:not(.prefilled) {
+      transform: scale(1.05);
+      border-color: #ff9800;
+      box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+    }
+    
+    .cell:active:not(.prefilled) {
+      transform: scale(0.95);
+    }
+    
+    .prefilled {
+      background: linear-gradient(145deg, #ffe0b2, #ffcc80);
+      cursor: not-allowed;
+      border-color: #ff9800;
+    }
+    
+    .valid-cell {
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+      border-color: #4caf50;
+      animation: valid-glow 1.5s ease-in-out;
+    }
+    
+    @keyframes valid-glow {
+      0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+      100% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.6); }
+    }
+    
+    .error-cell {
+      animation: error-stripe 1s infinite;
+      position: relative;
+    }
+    
+    .error-cell::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 5px,
+        rgba(255, 0, 0, 0.3) 5px,
+        rgba(255, 0, 0, 0.3) 10px
+      );
+      animation: slide-stripe 0.5s infinite linear;
+      z-index: 1;
+    }
+    
+    @keyframes slide-stripe {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    @keyframes error-stripe {
+      0%, 100% { border-color: #f44336; }
+      50% { border-color: #ff1744; }
+    }
+    
+    .hint-symbol {
+      position: absolute;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    
+    .hint-eq {
+      top: 2px;
+      right: 2px;
+      color: #2196f3;
+    }
+    
+    .hint-x {
+      top: 2px;
+      left: 2px;
+      color: #f44336;
+    }
+    
+    .control-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    
+    .game-btn {
+      border: none;
+      padding: 12px 24px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .submit-btn {
+      background: linear-gradient(145deg, #ff9800, #f57c00);
+      color: white;
+    }
+    
+    .clear-btn {
+      background: linear-gradient(145deg, #2196f3, #1976d2);
+      color: white;
+    }
+    
+    .retry-btn {
+      background: linear-gradient(145deg, #9c27b0, #7b1fa2);
+      color: white;
+    }
+    
+    .game-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .game-btn:active {
+      transform: translateY(0);
+    }
+    
+    #message {
+      margin-top: 15px;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .success-message {
+      background: linear-gradient(90deg, #c8e6c9, #a5d6a7);
+      color: #2e7d32;
+      border: 2px solid #4caf50;
+    }
+    
+    .error-message {
+      background: linear-gradient(90deg, #ffcdd2, #ef9a9a);
+      color: #c62828;
+      border: 2px solid #f44336;
+    }
+    
+    /* Popup Styles */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .popup-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .popup {
+      background: linear-gradient(145deg, #ffffff, #fafafa);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border: 3px solid #ff9800;
+      transform: scale(0.7);
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .popup-overlay.show .popup {
+      transform: scale(1);
+    }
+    
+    .popup h3 {
+      color: #e65100;
+      font-size: 1.5em;
+      margin-bottom: 15px;
+    }
+    
+    .popup-content {
+      margin-bottom: 20px;
+    }
+    
+    .fact-message {
+      font-size: 1.2em;
+      color: #2e7d32;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    
+    .fact-tip {
+      color: #555;
+      line-height: 1.6;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #ff9800;
+    }
+    
+    .popup-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .next-btn, .close-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1em;
+    }
+    
+    .next-btn {
+      background: linear-gradient(145deg, #4caf50, #388e3c);
+      color: white;
+    }
+    
+    .next-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .close-btn {
+      background: linear-gradient(145deg, #9e9e9e, #757575);
+      color: white;
+    }
+    
+    .close-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(158, 158, 158, 0.4);
+    }
+    
+    .stats-display {
+      background: linear-gradient(90deg, #fff8e1, #ffecb3);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #ffc107;
+    }
+    
+    .time-display {
+      font-size: 1.1em;
+      color: #e65100;
+      font-weight: bold;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .game-container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+      
+      .cell {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+      }
+      
+      .timer-section {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .game-btn {
+        width: 200px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .cell {
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+      }
+      
+      #grid {
+        gap: 1px;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🛡️ BCP Continuity Grid Challenge</h1>
+    <div id="levelTitle"></div>
+    
+    <div class="timer-section">
+      <div class="level-indicator">
+        <span id="levelIndicator">Level 1</span>
+      </div>
+      <div class="timer">
+        ⏱️ Time: <span id="timer">00:00</span>
+      </div>
+    </div>
+    
+    <div id="grid"></div>
+    
+    <div class="control-section">
+      <div class="button-group">
+        <button class="game-btn submit-btn" onclick="checkGrid()">Submit Solution</button>
+        <button class="game-btn clear-btn" onclick="clearGrid()">Clear All</button>
+        <button class="game-btn retry-btn" onclick="retryLevel()">New Puzzle</button>
+      </div>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <!-- Popup Overlay -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup">
+      <h3>🎉 Level Complete!</h3>
+      <div class="popup-content">
+        <div class="stats-display">
+          <div class="time-display" id="completionTime"></div>
+        </div>
+        <div class="fact-message" id="factMessage"></div>
+        <div class="fact-tip" id="factTip"></div>
+      </div>
+      <div class="popup-buttons">
+        <button class="next-btn" onclick="nextLevel()" id="nextLevelBtn">Next Level ➡️</button>
+        <button class="close-btn" onclick="closePopup()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SAFE = "🛡️";
+    const RISK = "⚠️";
+
+    let currentLevel = 0;
+    let cells = [];
+    let startTime = Date.now();
+    let timerInterval;
+    let levelTimes = [];
+    let currentLevelData = {};
+
+    // Base level templates for random generation
+    const levelTemplates = [
+      {
+        title: "Round 1: The Great Coffee Spill Crisis ☕",
+        size: 4,
+        minPrefilled: 2,
+        maxPrefilled: 4,
+        fact: {
+          msg: "✅ Crisis Averted! No drinks near servers.",
+          tip: "Identifying risks early is the first step to ensuring operational resilience. Regularly review your single points of failure."
+        }
+      },
+      {
+        title: "Round 2: The Wi-Fi Apocalypse 📶",
+        size: 5,
+        minPrefilled: 3,
+        maxPrefilled: 6,
+        fact: {
+          msg: "📶 Wi-Fi restored. And so are sales.",
+          tip: "Ensure critical systems have redundant backups. Test failover plans regularly to avoid unexpected downtime."
+        }
+      },
+      {
+        title: "Round 3: The Mystery IT Guy 🕵️",
+        size: 6,
+        minPrefilled: 4,
+        maxPrefilled: 8,
+        fact: {
+          msg: "🕵️ Someone call IT!",
+          tip: "Effective crisis communication ensures timely response. Update your escalation matrix before your IT guy disappears."
+        }
+      },
+      {
+        title: "Round 4: The Zombie Invasion Tabletop 🧟",
+        size: 7,
+        minPrefilled: 5,
+        maxPrefilled: 10,
+        fact: {
+          msg: "🧟 You survived the outbreak—well planned!",
+          tip: "A well-tested BCP covers people, process, and tech. Simulate scenarios to improve RTO and readiness."
+        }
+      }
+    ];
+
+    function generateRandomLevel(template) {
+      const size = template.size;
+      const totalCells = size * size;
+      const prefilled = {};
+      const eqHints = [];
+      const xPairs = [];
+      
+      // Generate random prefilled cells with more variation
+      const prefilledCount = template.minPrefilled + Math.floor(Math.random() * (template.maxPrefilled - template.minPrefilled + 1));
+      const usedPositions = new Set();
+      
+      for (let i = 0; i < prefilledCount; i++) {
+        let pos;
+        do {
+          pos = Math.floor(Math.random() * totalCells);
+        } while (usedPositions.has(pos));
+        
+        usedPositions.add(pos);
+        prefilled[pos] = Math.random() < 0.5 ? SAFE : RISK;
+      }
+      
+      // Generate random equal hints (rows that should have equal SAFE and RISK)
+      const eqCount = Math.max(1, Math.floor(size / 2) + Math.floor(Math.random() * 2));
+      const usedRows = new Set();
+      
+      for (let i = 0; i < eqCount && usedRows.size < size; i++) {
+        let row;
+        do {
+          row = Math.floor(Math.random() * size);
+        } while (usedRows.has(row));
+        
+        usedRows.add(row);
+        eqHints.push(row);
+      }
+      
+      // Generate random X pairs (cells that must be different)
+      const xPairCount = Math.max(2, Math.floor(size / 2) + Math.floor(Math.random() * 4));
+      
+      for (let i = 0; i < xPairCount; i++) {
+        let pos1, pos2;
+        let attempts = 0;
+        do {
+          pos1 = Math.floor(Math.random() * totalCells);
+          pos2 = Math.floor(Math.random() * totalCells);
+          attempts++;
+        } while ((pos1 === pos2 || 
+                  xPairs.some(pair => (pair[0] === pos1 && pair[1] === pos2) || (pair[0] === pos2 && pair[1] === pos1))) 
+                 && attempts < 50);
+        
+        if (attempts < 50) {
+          xPairs.push([pos1, pos2]);
+        }
+      }
+      
+      return {
+        title: template.title,
+        size: size,
+        prefilled: prefilled,
+        eqHints: eqHints,
+        xPairs: xPairs,
+        fact: template.fact
+      };
+    }
+
+    function startTimer() {
+      startTime = Date.now();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById("timer").textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      return Math.floor((Date.now() - startTime) / 1000);
+    }
+
+    function startLevel() {
+      if (currentLevel >= levelTemplates.length) {
+        showCompletionPopup();
+        return;
+      }
+
+      currentLevelData = generateRandomLevel(levelTemplates[currentLevel]);
+      
+      document.getElementById("levelTitle").textContent = currentLevelData.title;
+      document.getElementById("levelIndicator").textContent = `Level ${currentLevel + 1}`;
+      
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      cells = [];
+      grid.style.gridTemplateColumns = `repeat(${currentLevelData.size}, 60px)`;
+      const totalCells = currentLevelData.size * currentLevelData.size;
+
+      for (let i = 0; i < totalCells; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.index = i;
+        
+        if (currentLevelData.prefilled[i]) {
+          cell.textContent = currentLevelData.prefilled[i];
+          cell.classList.add("prefilled");
+        } else {
+          cell.onclick = () => toggleCell(cell);
+        }
+        grid.appendChild(cell);
+        cells.push(cell);
+      }
+
+      // Apply hint symbols
+      applyHintSymbols();
+      
+      clearMessage();
+      closePopup();
+      startTimer();
+    }
+
+    function applyHintSymbols() {
+      // Add = symbols for equal constraint rows
+      for (let rowIndex of currentLevelData.eqHints || []) {
+        for (let j = 0; j < currentLevelData.size; j++) {
+          const cellIndex = rowIndex * currentLevelData.size + j;
+          const cell = cells[cellIndex];
+          
+          const hintSymbol = document.createElement("div");
+          hintSymbol.classList.add("hint-symbol", "hint-eq");
+          hintSymbol.textContent = "=";
+          cell.appendChild(hintSymbol);
+        }
+      }
+
+      // Add X symbols for different constraint pairs
+      for (let [pos1, pos2] of currentLevelData.xPairs || []) {
+        const cell1 = cells[pos1];
+        const cell2 = cells[pos2];
+        
+        const hintSymbol1 = document.createElement("div");
+        hintSymbol1.classList.add("hint-symbol", "hint-x");
+        hintSymbol1.textContent = "×";
+        cell1.appendChild(hintSymbol1);
+        
+        const hintSymbol2 = document.createElement("div");
+        hintSymbol2.classList.add("hint-symbol", "hint-x");
+        hintSymbol2.textContent = "×";
+        cell2.appendChild(hintSymbol2);
+      }
+    }
+
+    function toggleCell(cell) {
+      if (cell.textContent === "" || cell.textContent === SAFE || cell.textContent === RISK) {
+        if (cell.textContent === "") {
+          cell.textContent = SAFE;
+        } else if (cell.textContent === SAFE) {
+          cell.textContent = RISK;
+        } else {
+          cell.textContent = "";
+        }
+      }
+      
+      // Clear any previous validation styles
+      cell.classList.remove("error-cell", "valid-cell");
+      
+      // Validate in real-time
+      validateRealTime();
+    }
+
+    function validateRealTime() {
+      // Clear all validation styles first
+      cells.forEach(cell => {
+        cell.classList.remove("error-cell", "valid-cell");
+      });
+      
+      const size = currentLevelData.size;
+      let hasValidPlacements = false;
+      
+      // Check for consecutive symbols (more than 2 in a row) and mark errors
+      for (let i = 0; i < size; i++) {
+        // Check rows
+        for (let j = 0; j <= size - 3; j++) {
+          const cellIndex1 = i * size + j;
+          const cellIndex2 = i * size + j + 1;
+          const cellIndex3 = i * size + j + 2;
+          
+          const symbol1 = cells[cellIndex1].textContent;
+          const symbol2 = cells[cellIndex2].textContent;
+          const symbol3 = cells[cellIndex3].textContent;
+          
+          if (symbol1 !== "" && symbol1 === symbol2 && symbol2 === symbol3 && 
+              (symbol1 === SAFE || symbol1 === RISK)) {
+            cells[cellIndex1].classList.add("error-cell");
+            cells[cellIndex2].classList.add("error-cell");
+            cells[cellIndex3].classList.add("error-cell");
+          }
+        }
+        
+        // Check columns
+        for (let j = 0; j <= size - 3; j++) {
+          const cellIndex1 = j * size + i;
+          const cellIndex2 = (j + 1) * size + i;
+          const cellIndex3 = (j + 2) * size + i;
+          
+          const symbol1 = cells[cellIndex1].textContent;
+          const symbol2 = cells[cellIndex2].textContent;
+          const symbol3 = cells[cellIndex3].textContent;
+          
+          if (symbol1 !== "" && symbol1 === symbol2 && symbol2 === symbol3 && 
+              (symbol1 === SAFE || symbol1 === RISK)) {
+            cells[cellIndex1].classList.add("error-cell");
+            cells[cellIndex2].classList.add("error-cell");
+            cells[cellIndex3].classList.add("error-cell");
+          }
+        }
+      }
+      
+      // Mark valid placements with green glow
+      cells.forEach((cell, index) => {
+        if (cell.textContent !== "" && !cell.classList.contains("error-cell") && !cell.classList.contains("prefilled")) {
+          cell.classList.add("valid-cell");
+          hasValidPlacements = true;
+        }
+      });
+    }
+
+    function clearGrid() {
+      cells.forEach(cell => {
+        if (!cell.classList.contains("prefilled")) {
+          cell.textContent = "";
+          cell.classList.remove("error-cell", "valid-cell");
+        }
+      });
+      clearMessage();
+    }
+
+    function retryLevel() {
+      startLevel(); // Generate new puzzle and restart timer
+    }
+
+    function countSymbols(arr) {
+      return arr.reduce(
+        (acc, val) => {
+          if (val === SAFE) acc[0]++;
+          if (val === RISK) acc[1]++;
+          return acc;
+        },
+        [0, 0]
+      );
+    }
+
+    function checkGrid() {
+      const size = currentLevelData.size;
+      let valid = true;
+      const rows = [], cols = [];
+
+      for (let i = 0; i < size; i++) {
+        rows.push([]);
+        cols.push([]);
+      }
+
+      for (let i = 0; i < size * size; i++) {
+        const row = Math.floor(i / size);
+        const col = i % size;
+        const symbol = cells[i].textContent;
+        rows[row].push(symbol);
+        cols[col].push(symbol);
+      }
+
+      function validateLine(line) {
+        for (let i = 0; i < line.length; i++) {
+          if (
+            i >= 2 &&
+            line[i] === line[i - 1] &&
+            line[i - 1] === line[i - 2] &&
+            (line[i] === SAFE || line[i] === RISK)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      for (let i = 0; i < size; i++) {
+        if (!validateLine(rows[i]) || !validateLine(cols[i])) {
+          valid = false;
+          break;
+        }
+      }
+
+      // Check equal constraints
+      for (let r of currentLevelData.eqHints || []) {
+        const [s, rsk] = countSymbols(rows[r]);
+        if (s !== rsk || s + rsk !== size) {
+          valid = false;
+          break;
+        }
+      }
+
+      // Check X constraints
+      for (let [a, b] of currentLevelData.xPairs || []) {
+        const sa = cells[a].textContent;
+        const sb = cells[b].textContent;
+        if (sa !== "" && sa === sb) {
+          valid = false;
+          break;
+        }
+      }
+
+      const allFilled = cells.every(cell => cell.textContent !== "");
+
+      if (valid && allFilled) {
+        const completionTime = stopTimer();
+        levelTimes.push(completionTime);
+        showSuccessPopup(completionTime);
+      } else {
+        showMessage("⚠️ Check grid for errors or empty cells.", "error");
+      }
+    }
+
+    function showMessage(text, type) {
+      const messageEl = document.getElementById("message");
+      messageEl.textContent = text;
+      messageEl.className = type === "error" ? "error-message" : "success-message";
+    }
+
+    function clearMessage() {
+      document.getElementById("message").textContent = "";
+      document.getElementById("message").className = "";
+    }
+
+    function showSuccessPopup(completionTime) {
+      const minutes = Math.floor(completionTime / 60);
+      const seconds = completionTime % 60;
+      const timeText = `⏱️ Completed in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      document.getElementById("completionTime").textContent = timeText;
+      document.getElementById("factMessage").textContent = currentLevelData.fact.msg;
+      document.getElementById("factTip").textContent = currentLevelData.fact.tip;
+      
+      const nextBtn = document.getElementById("nextLevelBtn");
+      if (currentLevel >= levelTemplates.length - 1) {
+        nextBtn.textContent = "🏁 Finish Game";
+      } else {
+        nextBtn.textContent = "Next Level ➡️";
+      }
+      
+      showMessage("🎉 Puzzle Completed!", "success");
+      document.getElementById("popupOverlay").classList.add("show");
+    }
+
+    function showCompletionPopup() {
+      const totalTime = levelTimes.reduce((sum, time) => sum + time, 0);
+      const avgTime = Math.floor(totalTime / levelTimes.length);
+      const minutes = Math.floor(totalTime / 60);
+      const seconds = totalTime % 60;
+      
+      document.getElementById("completionTime").textContent = 
+        `🏆 Total Time: ${minutes}:${seconds.toString().padStart(2, '0')} | Average: ${Math.floor(avgTime / 60
