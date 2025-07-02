@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BCP Continuity Grid Challenge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 5px;
+    }
+    #levelTitle {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+    #grid {
+      display: grid;
+      gap: 5px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      background: #fff;
+      border: 2px solid #ccc;
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .prefilled {
+      background-color: #e0e0e0;
+      cursor: not-allowed;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    #factBox {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      display: none;
+    }
+    button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>BCP Continuity Grid Challenge</h1>
+  <div id="levelTitle"></div>
+  <div id="grid"></div>
+  <button onclick="checkGrid()">Submit</button>
+  <div id="message"></div>
+  <div id="factBox">
+    <p id="factMessage"></p>
+    <p id="factTip"></p>
+    <button onclick="nextLevel()">Next Level</button>
+  </div>
+
+  <script>
+    const SAFE = "🛡️";
+    const RISK = "⚠️";
+
+    const levels = [
+      {
+        title: "Round 1: The Great Coffee Spill Crisis ☕",
+        size: 4,
+        prefilled: { 0: SAFE, 5: RISK },
+        fact: {
+          msg: "✅ Crisis Averted! No drinks near servers.",
+          tip: "Identifying risks early is the first step to ensuring operational resilience. Regularly review your single points of failure."
+        }
+      },
+      {
+        title: "Round 2: The Wi-Fi Apocalypse 📶",
+        size: 5,
+        prefilled: { 1: RISK, 6: SAFE, 12: RISK },
+        fact: {
+          msg: "📶 Wi-Fi restored. And so are sales.",
+          tip: "Ensure critical systems have redundant backups. Test failover plans regularly to avoid unexpected downtime."
+        }
+      },
+      {
+        title: "Round 3: The Mystery IT Guy 🕵️",
+        size: 6,
+        prefilled: { 2: SAFE, 9: RISK, 18: SAFE, 26: RISK },
+        fact: {
+          msg: "🕵️ Someone call IT!",
+          tip: "Effective crisis communication ensures timely response. Update your escalation matrix before your IT guy disappears."
+        }
+      },
+      {
+        title: "Round 4: The Zombie Invasion Tabletop 🧟",
+        size: 7,
+        prefilled: { 3: RISK, 11: SAFE, 20: SAFE, 29: RISK, 38: SAFE, 44: RISK },
+        fact: {
+          msg: "🧟 You survived the outbreak—well planned!",
+          tip: "A well-tested BCP covers people, process, and tech. Simulate scenarios to improve RTO and readiness."
+        }
+      }
+    ];
+
+    let currentLevel = 0;
+    let cells = [];
+
+    function startLevel() {
+      const level = levels[currentLevel];
+      document.getElementById("levelTitle").textContent = level.title;
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      cells = [];
+      grid.style.gridTemplateColumns = `repeat(${level.size}, 50px)`;
+      const totalCells = level.size * level.size;
+
+      for (let i = 0; i < totalCells; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        if (level.prefilled[i]) {
+          cell.textContent = level.prefilled[i];
+          cell.classList.add("prefilled");
+        } else {
+          cell.onclick = () => {
+            if (cell.textContent === "") {
+              cell.textContent = SAFE;
+            } else if (cell.textContent === SAFE) {
+              cell.textContent = RISK;
+            } else {
+              cell.textContent = "";
+            }
+          };
+        }
+        grid.appendChild(cell);
+        cells.push(cell);
+      }
+
+      document.getElementById("message").textContent = "";
+      document.getElementById("factBox").style.display = "none";
+    }
+
+    function checkGrid() {
+      const level = levels[currentLevel];
+      const size = level.size;
+      let valid = true;
+      const rows = [], cols = [];
+
+      for (let i = 0; i < size; i++) {
+        rows.push([]);
+        cols.push([]);
+      }
+
+      for (let i = 0; i < size * size; i++) {
+        const row = Math.floor(i / size);
+        const col = i % size;
+        const symbol = cells[i].textContent;
+        rows[row].push(symbol);
+        cols[col].push(symbol);
+      }
+
+      function validateLine(line) {
+        for (let i = 0; i < line.length; i++) {
+          if (
+            i >= 2 &&
+            line[i] === line[i - 1] &&
+            line[i - 1] === line[i - 2] &&
+            (line[i] === SAFE || line[i] === RISK)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      for (let i = 0; i < size; i++) {
+        if (!validateLine(rows[i]) || !validateLine(cols[i])) {
+          valid = false;
+          break;
+        }
+      }
+
+      const allFilled = cells.every(cell => cell.textContent !== "");
+
+      const messageBox = document.getElementById("message");
+      const factBox = document.getElementById("factBox");
+
+      if (valid && allFilled) {
+        messageBox.textContent = "🎉 Puzzle Completed!";
+        document.getElementById("factMessage").textContent = level.fact.msg;
+        document.getElementById("factTip").textContent = level.fact.tip;
+        factBox.style.display = "block";
+      } else {
+        messageBox.textContent = "⚠️ Check grid for errors or empty cells.";
+        factBox.style.display = "none";
+      }
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      if (currentLevel < levels.length) {
+        startLevel();
+      } else {
+        alert("🏁 All rounds completed! Well done!");
+      }
+    }
+
+    startLevel();
+  </script>
+</body>
+</html>
