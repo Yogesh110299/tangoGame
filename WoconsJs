@@ -398,7 +398,8 @@ let currentLevel = 1;
         }
 
         function nextLevel() {
-            closeModal();
+            // Don't close modal here - handle it separately
+            document.getElementById('fact-modal').style.display = 'none';
 
             if (currentLevel < maxLevel) {
                 currentLevel++;
@@ -406,7 +407,7 @@ let currentLevel = 1;
                 updateDisplay();
                 resetTimer();
                 
-                // FIXED: Enable buttons for next level
+                // Enable buttons for next level
                 document.getElementById('start-btn').disabled = false;
                 document.getElementById('clear-btn').disabled = true;
                 document.getElementById('restart-btn').disabled = true;
@@ -430,7 +431,7 @@ let currentLevel = 1;
         function closeModal() {
             document.getElementById('fact-modal').style.display = 'none';
             
-            // FIXED: Disable all buttons except next level when modal is closed
+            // When modal is closed, disable all game buttons and show next level button
             document.getElementById('start-btn').disabled = true;
             document.getElementById('clear-btn').disabled = true;
             document.getElementById('restart-btn').disabled = true;
