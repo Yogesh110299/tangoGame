@@ -1,4 +1,4 @@
-        let currentLevel = 1;
+let currentLevel = 1;
         let maxLevel = 4;
         let grid = [];
         let prefilled = [];
@@ -42,11 +42,11 @@
             }
         };
 
-
         function initializeGame() {
             createGrid();
             updateDisplay();
-            startGame();
+            // Don't start the game automatically - let user click start
+            resetTimer();
         }
 
         function setupEventListeners() {
@@ -361,6 +361,7 @@
         }
 
         function completeLevel() {
+            // FIXED: Stop the timer immediately when level is completed
             stopTimer();
             gameStarted = false;
 
@@ -369,7 +370,8 @@
 
             updateLevelProgress();
 
-            setTimeout(() => { showBCPFact(); }, 2000); // added time 8 secs for solution
+            // Show the BCP fact modal after a short delay
+            setTimeout(() => { showBCPFact(); }, 2000);
         }
 
         function updateLevelProgress() {
@@ -403,10 +405,12 @@
                 createGrid();
                 updateDisplay();
                 resetTimer();
+                
+                // FIXED: Enable buttons for next level
                 document.getElementById('start-btn').disabled = false;
-                document.getElementById('clear-btn').disabled = false;
-                document.getElementById('restart-btn').disabled = false;
-                //startTimer(); //yb
+                document.getElementById('clear-btn').disabled = true;
+                document.getElementById('restart-btn').disabled = true;
+                document.getElementById('next-level-btn').style.display = 'none';
             } else {
                 // Game complete
                 alert('Congratulations! You\'ve completed all levels and mastered Business Continuity Planning!');
@@ -414,13 +418,22 @@
                 createGrid();
                 updateDisplay();
                 resetTimer();
+                
+                // Reset buttons for new game
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('clear-btn').disabled = true;
+                document.getElementById('restart-btn').disabled = true;
+                document.getElementById('next-level-btn').style.display = 'none';
             }
         }
 
         function closeModal() {
             document.getElementById('fact-modal').style.display = 'none';
-            document.getElementById('clear-btn').disabled = true; //yb
-            document.getElementById('restart-btn').disabled = true; //yb
+            
+            // FIXED: Disable all buttons except next level when modal is closed
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('clear-btn').disabled = true;
+            document.getElementById('restart-btn').disabled = true;
             document.getElementById('next-level-btn').style.display = 'block';
         }
 
@@ -431,6 +444,7 @@
             document.getElementById('start-btn').disabled = true;
             document.getElementById('clear-btn').disabled = false;
             document.getElementById('restart-btn').disabled = false;
+            document.getElementById('next-level-btn').style.display = 'none';
             
             showHints();
         }
@@ -464,19 +478,23 @@
         }
 
         function restartGame() {
+            // FIXED: Stop timer before restarting
             stopTimer();
             gameStarted = true;
             resetTimer();
             createGrid();
             updateDisplay();
-            startTimer(); // yb
+            startTimer();
 
-            document.getElementById('start-btn').disabled = true; //yb
-            document.getElementById('clear-btn').disabled = false; //yb
-            document.getElementById('restart-btn').disabled = false; //yb
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('clear-btn').disabled = false;
+            document.getElementById('restart-btn').disabled = false;
+            document.getElementById('next-level-btn').style.display = 'none';
         }
 
         function startTimer() {
+            // FIXED: Make sure to stop any existing timer before starting a new one
+            stopTimer();
             startTime = Date.now();
             timerInterval = setInterval(() => {
                 currentTime = Date.now() - startTime;
@@ -556,10 +574,8 @@
             });
         }
 
-
         function loaderfunc() {
             initializeGame();
             setupEventListeners();
             updateLeaderboard();
         }
-
