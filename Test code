@@ -1,0 +1,35 @@
+<div id="test-output" style="margin: 20px; font-size: 18px; color: green;">
+  Waiting for script...
+</div>
+
+<script type="text/javascript">
+  function initMyTest() {
+    alert("🚀 initMyTest() called");
+
+    class TangoGame {
+      constructor() {
+        alert("✅ TangoGame instantiated");
+        const el = document.getElementById('test-output');
+        if (el) {
+          el.textContent = "✨ TangoGame class has successfully loaded!";
+        } else {
+          alert("⚠️ 'test-output' div not found!");
+        }
+      }
+    }
+
+    new TangoGame();
+  }
+
+  // Safe DOM Ready detection for SharePoint Modern
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    alert("📦 DOM ready — running initMyTest()");
+    initMyTest();
+  } else {
+    alert("📦 Waiting for DOMContentLoaded");
+    document.addEventListener('DOMContentLoaded', function () {
+      alert("📦 DOMContentLoaded fired — calling initMyTest()");
+      initMyTest();
+    });
+  }
+</script>
