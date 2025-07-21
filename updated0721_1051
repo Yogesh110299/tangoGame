@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tango Game - Fixed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .start-btn { background-color: #4CAF50; color: white; }
+        .clear-btn { background-color: #ff9800; color: white; }
+        .restart-btn { background-color: #2196F3; color: white; }
+        .next-level-btn { background-color: #9C27B0; color: white; }
+        .game-area {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .game-grid {
+            display: grid;
+            gap: 2px;
+            justify-content: center;
+        }
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        .grid-cell.prefilled {
+            background-color: #e3f2fd;
+            cursor: not-allowed;
+        }
+        .grid-cell.violation {
+            background-color: #ffcdd2;
+            border-color: #f44336;
+        }
+        .grid-cell.hint {
+            background-color: #fff3e0;
+            border-color: #ff9800;
+            animation: pulse 0.5s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .info-panel {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            min-width: 200px;
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .level-result {
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        .leaderboard {
+            margin-top: 20px;
+        }
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .modal h2 {
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        .modal p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .modal-message {
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Tango Game - Business Continuity Planning</h1>
+            <h2 id="current-level">Round 1 - Easy</h2>
+            <p id="grid-size">(4x4)</p>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn" class="start-btn">Start Game</button>
+            <button id="clear-btn" class="clear-btn" disabled>Clear Grid</button>
+            <button id="restart-btn" class="restart-btn" disabled>Restart</button>
+            <button id="next-level-main-btn" class="next-level-btn" style="display: none;" disabled>Next Level</button>
+        </div>
+        
+        <div class="game-area">
+            <div id="game-grid" class="game-grid"></div>
+            
+            <div class="info-panel">
+                <div class="timer" id="timer">00:00</div>
+                <div id="level-result" class="level-result"></div>
+                
+                <div class="leaderboard">
+                    <h3>Leaderboard</h3>
+                    <div id="leaderboard-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="fact-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-content"></p>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="next-level-btn" class="next-level-btn" style="display: none;">Next Level</button>
+            <button id="close-modal-btn" class="clear-btn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let maxLevel = 4;
+        let grid = [];
+        let prefilled = [];
+        let gameStarted = false;
+        let startTime = 0;
+        let currentTime = 0;
+        let timerInterval = null;
+        let leaderboard = []; // ybcr - removed localStorage dependency
+        let levelCompleted = false; // ybcr - track level completion state
+
+        const levels = {
+            1: { size: 4, prefilled: 3, name: "Round 1 - Easy", hintDuration: 3000 },
+            2: { size: 4, prefilled: 2, name: "Round 2 - Medium", hintDuration: 2000 },
+            3: { size: 6, prefilled: 5, name: "Round 3 - Expert", hintDuration: 1500 },
+            4: { size: 6, prefilled: 4, name: "Round 4 - Advanced", hintDuration: 1000 }
+        };
+
+        const bcpFacts = {
+            1: {
+                title: "The Great Coffee Spill Crisis",
+                content: "In 2019, a panicked intern at a tech firm spilled an entire cup of coffee onto the main server. The Company had no BCP or redundant system. \n Results: 6 hours of downtime, no access to email and a new office rule: no beverages near IT equipment.",
+                lesson: "Protect your assets and your coffee.",
+                message: "Crisis Averted! Remember: No drinks near servers"
+            },
+            2: {
+                title: "The Wi-Fi Apocalypse",
+                content: "A famous retail chain's entire branch network went down because someone unplugged the router to charge their phone. \n Results: No internet, no BCP call tree and no sales for 4 hours.",
+                lesson: "Always plan for the human factor, and maybe invest in a multi-port charger.",
+                message: "Wi-Fi restored! And so are sales."
+            },
+            3: {
+                title: "The Mystery IT Guy",
+                content: "During a planned data center drill, the company realized no one knew how to initiate the recovery plan because the IT guy had left... 3 years ago. There was no updated contact list.",
+                lesson: "Update your escalation matrix before your IT guy turns into an urban legend.",
+                message: "Someone call IT!"
+            },
+            4: {
+                title: "The Zombie Invasion Tabletop",
+                content: "A team ran BCP tabletop exercise using a zombie outbreak scenario. It went viral and the fake news reached the local media. The company had to issue a press release clarifying it wasn't real.",
+                lesson: "Creative BCP scenarios are great: just remember to tell everyone it's a drill.",
+                message: "Outbreak contained. Next drill: alien invasion?"
+            }
+        };
+	
+
+        function initializeGame() {
+            createGrid();
+            updateDisplay();
+            startGame();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('start-btn').addEventListener('click', () => startGame());
+            document.getElementById('clear-btn').addEventListener('click', () => clearGrid());
+            document.getElementById('restart-btn').addEventListener('click', () => restartGame());
+            document.getElementById('next-level-btn').addEventListener('click', () => nextLevel());
+            document.getElementById('next-level-main-btn').addEventListener('click', () => nextLevel()); // ybcr - main next level button
+            document.getElementById('close-modal-btn').addEventListener('click', () => closeModal());
+        }
+
+        function createGrid() {
+            const level = levels[currentLevel];
+            const gridElement = document.getElementById('game-grid');
+
+            gridElement.style.gridTemplateColumns = `repeat(${level.size}, 60px)`;
+            gridElement.innerHTML = '';
+
+            grid = Array(level.size).fill(null).map(() => Array(level.size).fill(''));
+            prefilled = [];
+
+            // Generate prefilled cells
+            generatePrefilledCells();
+
+            // Create grid cells
+            for (let row = 0; row < level.size; row++) {
+                for (let col = 0; col < level.size; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    const isPrefilled = prefilled.some(p => p.row === row && p.col === col);
+                    if (isPrefilled) {
+                        cell.classList.add('prefilled');
+                        const prefilledData = prefilled.find(p => p.row === row && p.col === col);
+                        cell.textContent = prefilledData.symbol;
+                        grid[row][col] = prefilledData.symbol;
+                    }
+
+                    if (!isPrefilled) {
+                        cell.addEventListener('click', () => toggleCell(row, col));
+                    }
+
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function generatePrefilledCells() {
+            const level = levels[currentLevel];
+            const symbols = ['🛡️', '⚠️'];
+
+            for (let i = 0; i < level.prefilled; i++) {
+                let row, col;
+                do {
+                    row = Math.floor(Math.random() * level.size);
+                    col = Math.floor(Math.random() * level.size);
+                } while (prefilled.some(p => p.row === row && p.col === col));
+
+                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                prefilled.push({ row, col, symbol });
+            }
+        }
+
+        function toggleCell(row, col) {
+            if (!gameStarted || levelCompleted) return; // ybcr - prevent interaction after level completion
+
+            const symbols = ['', '🛡️', '⚠️'];
+            const currentIndex = symbols.indexOf(grid[row][col]);
+            const nextIndex = (currentIndex + 1) % symbols.length;
+
+            grid[row][col] = symbols[nextIndex];
+            updateCellDisplay(row, col);
+
+            // Check for violations
+            checkViolations(row, col);
+
+            // Check if level is complete
+            if (isLevelComplete()) {
+                completeLevel();
+            }
+
+            // Show hints
+            showHints();
+        }
+
+        function updateCellDisplay(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.textContent = grid[row][col];
+        }
+
+        function checkViolations(row, col) {
+            const symbol = grid[row][col];
+            if (!symbol) return;
+
+            // Check horizontal violations
+            checkHorizontalViolations(row, col, symbol);
+
+            // Check vertical violations
+            checkVerticalViolations(row, col, symbol);
+        }
+
+        function checkHorizontalViolations(row, col, symbol) {
+            // Check left-left-current
+            if (col >= 2 && grid[row][col - 1] === symbol && grid[row][col - 2] === symbol) {
+                showViolation(row, col - 2);
+                showViolation(row, col - 1);
+                showViolation(row, col);
+            }
+
+            // Check left-current-right
+            if (col >= 1 && col < grid[row].length - 1 &&
+                grid[row][col - 1] === symbol && grid[row][col + 1] === symbol) {
+                showViolation(row, col - 1);
+                showViolation(row, col);
+                showViolation(row, col + 1);
+            }
+
+            // Check current-right-right
+            if (col < grid[row].length - 2 &&
+                grid[row][col + 1] === symbol && grid[row][col + 2] === symbol) {
+                showViolation(row, col);
+                showViolation(row, col + 1);
+                showViolation(row, col + 2);
+            }
+        }
+
+        function checkVerticalViolations(row, col, symbol) {
+            // Check top-top-current
+            if (row >= 2 && grid[row - 1][col] === symbol && grid[row - 2][col] === symbol) {
+                showViolation(row - 2, col);
+                showViolation(row - 1, col);
+                showViolation(row, col);
+            }
+
+            // Check top-current-bottom
+            if (row >= 1 && row < grid.length - 1 &&
+                grid[row - 1][col] === symbol && grid[row + 1][col] === symbol) {
+                showViolation(row - 1, col);
+                showViolation(row, col);
+                showViolation(row + 1, col);
+            }
+
+            // Check current-bottom-bottom
+            if (row < grid.length - 2 &&
+                grid[row + 1][col] === symbol && grid[row + 2][col] === symbol) {
+                showViolation(row, col);
+                showViolation(row + 1, col);
+                showViolation(row + 2, col);
+            }
+        }
+
+        function showViolation(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add('violation');
+            setTimeout(() => cell.classList.remove('violation'), 500);
+        }
+
+        function showHints() {
+            if (!gameStarted || levelCompleted) return; // ybcr - prevent hints after level completion
+
+            const level = levels[currentLevel];
+            const hints = generateHints();
+
+            hints.forEach(hint => {
+                const cell = document.querySelector(`[data-row="${hint.row}"][data-col="${hint.col}"]`);
+                cell.classList.add('hint');
+                setTimeout(() => cell.classList.remove('hint'), level.hintDuration);
+            });
+        }
+
+        function generateHints() {
+            const hints = [];
+            const level = levels[currentLevel];
+
+            for (let row = 0; row < level.size; row++) {
+                for (let col = 0; col < level.size; col++) {
+                    if (grid[row][col] === '' && !prefilled.some(p => p.row === row && p.col === col)) {
+                        const possibleSymbols = getPossibleSymbols(row, col);
+                        if (possibleSymbols.length === 1) {
+                            hints.push({ row, col, symbol: possibleSymbols[0] });
+                        }
+                    }
+                }
+            }
+
+            return hints.slice(0, 1);
+        }
+
+        function getPossibleSymbols(row, col) {
+            const symbols = ['🛡️', '⚠️'];
+            const possible = [];
+
+            for (const symbol of symbols) {
+                if (canPlaceSymbol(row, col, symbol)) {
+                    possible.push(symbol);
+                }
+            }
+
+            return possible;
+        }
+
+        function canPlaceSymbol(row, col, symbol) {
+            // Check horizontal constraints
+            if (!checkHorizontalConstraints(row, col, symbol)) return false;
+
+            // Check vertical constraints
+            if (!checkVerticalConstraints(row, col, symbol)) return false;
+
+            // Check row/column balance
+            if (!checkBalanceConstraints(row, col, symbol)) return false;
+
+            return true;
+        }
+
+        function checkHorizontalConstraints(row, col, symbol) {
+            // Check if placing this symbol would create 3 in a row
+            const rowData = grid[row];
+
+            // Check left side
+            if (col >= 2 && rowData[col - 1] === symbol && rowData[col - 2] === symbol) return false;
+
+            // Check middle
+            if (col >= 1 && col < rowData.length - 1 &&
+                rowData[col - 1] === symbol && rowData[col + 1] === symbol) return false;
+
+            // Check right side
+            if (col < rowData.length - 2 && rowData[col + 1] === symbol && rowData[col + 2] === symbol) return false;
+
+            return true;
+        }
+
+        function checkVerticalConstraints(row, col, symbol) {
+            // Check if placing this symbol would create 3 in a column
+
+            // Check top side
+            if (row >= 2 && grid[row - 1][col] === symbol && grid[row - 2][col] === symbol) return false;
+
+            // Check middle
+            if (row >= 1 && row < grid.length - 1 &&
+                grid[row - 1][col] === symbol && grid[row + 1][col] === symbol) return false;
+
+            // Check bottom side
+            if (row < grid.length - 2 &&
+                grid[row + 1][col] === symbol && grid[row + 2][col] === symbol) return false;
+
+            return true;
+        }
+
+        function checkBalanceConstraints(row, col, symbol) {
+            const level = levels[currentLevel];
+            const targetCount = level.size / 2;
+
+            // Check row balance
+            const rowCount = grid[row].filter(cell => cell === symbol).length;
+            if (rowCount >= targetCount) return false;
+
+            // Check column balance
+            const colCount = grid.map(row => row[col]).filter(cell => cell === symbol).length;
+            if (colCount >= targetCount) return false;
+
+            return true;
+        }
+
+        function isLevelComplete() {
+            const level = levels[currentLevel];
+
+            // Check if all cells are filled
+            for (let row = 0; row < level.size; row++) {
+                for (let col = 0; col < level.size; col++) {
+                    if (grid[row][col] === '') return false;
+                }
+            }
+
+            // Check if all rules are satisfied
+            return validateGrid();
+        }
+
+        function validateGrid() {
+            const level = levels[currentLevel];
+            const targetCount = level.size / 2;
+
+            // Check each row
+            for (let row = 0; row < level.size; row++) {
+                const rowData = grid[row];
+                const shieldCount = rowData.filter(cell => cell === '🛡️').length;
+                const warningCount = rowData.filter(cell => cell === '⚠️').length;
+
+                if (shieldCount !== targetCount || warningCount !== targetCount) return false;
+
+                // Check for 3 consecutive symbols
+                for (let col = 0; col < level.size - 2; col++) {
+                    if (rowData[col] === rowData[col + 1] && rowData[col + 1] === rowData[col + 2]) return false;
+                }
+            }
+
+            // Check each column
+            for (let col = 0; col < level.size; col++) {
+                const colData = grid.map(row => row[col]);
+                const shieldCount = colData.filter(cell => cell === '🛡️').length;
+                const warningCount = colData.filter(cell => cell === '⚠️').length;
+
+                if (shieldCount !== targetCount || warningCount !== targetCount) return false;
+
+                // Check for 3 consecutive symbols
+                for (let row = 0; row < level.size - 2; row++) {
+                    if (colData[row] === colData[row + 1] && colData[row + 1] === colData[row + 2]) return false;
+                }
+            }
+
+            return true;
+        }
+
+        function completeLevel() {
+            stopTimer(); // ybcr - stop timer immediately when level is completed
+            gameStarted = false;
+            levelCompleted = true; // ybcr - set level completed flag
+
+            // Update leaderboard
+            updateLeaderboardData();
+
+            updateLevelProgress();
+
+            setTimeout(() => { showBCPFact(); }, 8000); // added time 8 secs for solution
+        }
+
+        function updateLevelProgress() {
+            const level = levels[currentLevel];
+            document.getElementById('level-result').textContent = "🎉Congratulations..! You have completed Round " + currentLevel + "🎉";
+        }
+
+        function showBCPFact() {
+            const fact = bcpFacts[currentLevel];
+            document.getElementById('modal-title').textContent = fact.title;
+            document.getElementById('modal-content').textContent = "\n" + fact.content + "\n" + " Lesson: " + fact.lesson;
+            document.getElementById('modal-message').textContent = fact.message;
+
+            const nextBtn = document.getElementById('next-level-btn');
+            if (currentLevel < maxLevel) {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.textContent = 'Next Level';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.textContent = 'Game Complete!';
+            }
+
+            document.getElementById('fact-modal').style.display = 'block';
+        }
+
+        function nextLevel() {
+            closeModal();
+
+            if (currentLevel < maxLevel) {
+                currentLevel++; // ybcr - fixed level progression, increments sequentially
+                levelCompleted = false; // ybcr - reset level completed flag
+                createGrid();
+                updateDisplay();
+                resetTimer();
+                
+                // ybcr - reset button states for new level
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('clear-btn').disabled = true;
+                document.getElementById('restart-btn').disabled = true;
+                document.getElementById('next-level-main-btn').style.display = 'none';
+            } else {
+                // Game complete
+                alert('Congratulations! You\'ve completed all levels and mastered Business Continuity Planning!');
+                currentLevel = 1;
+                levelCompleted = false; // ybcr - reset for new game
+                createGrid();
+                updateDisplay();
+                resetTimer();
+                
+                // ybcr - reset button states for new game
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('clear-btn').disabled = true;
+                document.getElementById('restart-btn').disabled = true;
+                document.getElementById('next-level-main-btn').style.display = 'none';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('fact-modal').style.display = 'none';
+            
+            // ybcr - show main next level button and disable other buttons when modal is closed
+            if (levelCompleted) {
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('clear-btn').disabled = true;
+                document.getElementById('restart-btn').disabled = true;
+                document.getElementById('next-level-main-btn').style.display = 'inline-block';
+                document.getElementById('next-level-main-btn').disabled = false;
+            }
+        }
+
+        function startGame() {
+            gameStarted = true;
+            levelCompleted = false; // ybcr - ensure level is not marked as completed when starting
+            startTimer();
+
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('clear-btn').disabled = false;
+            document.getElementById('restart-btn').disabled = false;
+            document.getElementById('next-level-main-btn').style.display = 'none'; // ybcr - hide next level button during game
+
+            showHints();
+        }
+
+        function clearGrid() {
+            if (!gameStarted || levelCompleted) return; // ybcr - prevent clearing after level completion
+
+            const level = levels[currentLevel];
+
+            for (let row = 0; row < level.size; row++) {
+                for (let col = 0; col < level.size; col++) {
+                    if (!prefilled.some(p => p.row === row && p.col === col)) {
+                        grid[row][col] = '';
+                        updateCellDisplay(row, col);
+                    }
+                }
+            }
+        }
+
+        function glowGrid() {
+            const level = levels[currentLevel];
+
+            for (let row = 0; row < level.size; row++) {
+                for (let col = 0; col < level.size; col++) {
+                    if (!prefilled.some(p => p.row === row && p.col === col)) {
+                        grid[row][col] = '';
+                        updateCellDisplay(row, col);
+                    }
+                }
+            }
+        }
+
+        function restartGame() {
+            stopTimer();
+            gameStarted = true;
+            levelCompleted = false; // ybcr - reset level completed flag
+            resetTimer();
+            createGrid();
+            updateDisplay();
+            startTimer(); // yb
+
+            document.getElementById('start-btn').disabled = true; //yb
+            document.getElementById('clear-btn').disabled = false; //yb
+            document.getElementById('restart-btn').disabled = false; //yb
+            document.getElementById('next-level-main-btn').style.display = 'none'; // ybcr - hide next level button during restart
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                currentTime = Date.now() - startTime;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+            currentTime = 0;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(currentTime / 60000);
+            const seconds = Math.floor((currentTime % 60000) / 1000);
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer').textContent = display;
+        }
+
+        function updateDisplay() {
+            const level = levels[currentLevel];
+            document.getElementById('current-level').textContent = level.name;
+            document.getElementById('grid-size').textContent = `(${level.size}x${level.size})`;
+            document.getElementById('level-result').textContent = "";
+        }
+
+        function updateLeaderboardData() {
+            const entry = {
+                level: currentLevel,
+                time: currentTime,
+                timestamp: Date.now()
+            };
+
+            leaderboard.push(entry);
+            leaderboard.sort((a, b) => {
+                if (a.level !== b.level) return b.level - a.level;
+                return a.time - b.time;
+            });
+
+            //entry holds only 10 recs of game progress
+            leaderboard = leaderboard.slice(0, 10);
+
+            // ybcr - removed localStorage usage as it's not supported in Claude artifacts
+            updateLeaderboard();
+        }
+
+        function updateLeaderboard() {
+            const leaderboardContent = document.getElementById('leaderboard-content');
+
+            if (leaderboard.length === 0) {
+                leaderboardContent.innerHTML = '<div class="leaderboard-entry"><span>No games completed yet</span><span>--:--</span></div>';
+                return;
+            }
+
+            leaderboardContent.innerHTML = '';
+
+            leaderboard.forEach((entry, index) => {
+                const minutes = Math.floor(entry.time / 60000);
+                const seconds = Math.floor((entry.time % 60000) / 1000);
+                const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'leaderboard-entry';
+                entryDiv.innerHTML = `
+            <span>#${index + 1} - Level ${entry.level}</span>
+            <span>${timeDisplay}</span>
+        `;
+                leaderboardContent.appendChild(entryDiv);
+            });
+        }
+
+
+        function loaderfunc()
+        {
+            initializeGame();
+            setupEventListeners();
+            updateLeaderboard();
+        }
+
+        // ybcr - Initialize the game when page loads
+        window.addEventListener('load', loaderfunc);
+    </script>
+</body>
+</html>
