@@ -1,0 +1,37 @@
+1: {
+        title: "☕ The Great Coffee Catastrophe",
+        content: "Picture this: 2019, bustling tech office, nervous intern with a steaming cup of joe. One clumsy moment later—SPLASH! Coffee meets main server in an epic showdown.\n\n💥 The aftermath: 6 hours of digital darkness, zero emails, and one very sheepish intern. Plot twist? No backup plan existed!",
+        lesson: "💡 Golden Rule: Protect your servers AND your caffeine habits!",
+        message: "☕ Crisis Brewing... I mean, AVERTED! New office motto: 'Coffee stays, servers stay dry!'"
+    },
+    2: {
+        title: "📶 The Great Wi-Fi Wipeout",
+        content: "A major retail chain's worst nightmare unfolded when an employee needed to charge their phone. The solution? Unplug the main router, obviously!\n\n📉 Chaos ensued: Network flatlined, sales plummeted, and 4 hours later, someone finally asked, 'Wait, where's the internet?'",
+        lesson: "🎯 Pro Tip: Plan for human creativity—it's more unpredictable than any cyberattack!",
+        message: "📶 Connection restored! Sales team can breathe again (and everyone got a charging station)."
+    },
+    3: {
+        title: "👻 The Vanishing IT Wizard",
+        content: "Emergency drill day arrives! Time to activate the disaster recovery plan. There's just one tiny problem—the only person who knew the process had mysteriously disappeared... three years ago.\n\n🔍 The great hunt began: Dusty manuals, forgotten passwords, and the realization that 'Dave from IT' had become office folklore.",
+        lesson: "📋 Reality Check: Keep your contact lists fresher than your office donuts!",
+        message: "🔧 IT Support located! (Turns out Dave's been working two blocks away this whole time.)"
+    },
+    4: {
+        title: "🧟 The Zombie Drill Disaster",
+        content: "Creative team decides to spice up their BCP exercise with a zombie apocalypse scenario. Plot twist: The 'classified drill' leaked, went viral, and suddenly local news was asking about the 'undead threat.'\n\n📺 Cue frantic damage control and one very awkward press conference explaining that zombies were NOT actually invading the office.",
+        lesson: "🎭 Creative scenarios = engagement gold, but maybe add a 'THIS IS ONLY A DRILL' disclaimer!",
+        message: "🧟‍♂️ Zombie threat neutralized! Next drill theme: Space invasion (with proper disclaimers)."
+    },
+    5: {
+        title: "🔐 The Password Panic",
+        content: "System admin goes on vacation without sharing the master password. Murphy's Law strikes: critical system crashes on day two of their beach holiday.\n\n🏖️ Result: Frantic international calls, password recovery chaos, and one very interrupted vacation. The 'emergency contact' number? Disconnected.",
+        lesson: "🔑 Share the keys to the kingdom—your tan can wait, but your systems can't!",
+        message: "🔓 Access restored! Admin's vacation resumed (with shared passwords)."
+    },
+    6: {
+        title: "☁️ The Cloud Confusion",
+        content: "Company migrates everything to 'the cloud' but forgets to train anyone on the new system. When disaster strikes, the recovery team stares blankly at the dashboard like it's alien technology.\n\n🛸 6 hours of 'Have you tried turning the cloud off and on again?' later, they finally call tech support.",
+        lesson: "🎓 Migration without education = expensive confusion!",
+        message: "☁️ Cloud cleared! Training scheduled (and mandatory this time)."
+    }
+};
