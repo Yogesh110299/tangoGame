@@ -273,6 +273,12 @@
             font-size: 1.8em;
         }
 
+        .scenario-modal-result {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
         .scenario-message {
             background: rgba(243, 156, 18, 0.1);
             padding: 15px;
@@ -401,7 +407,9 @@
         <div class="modal-content">
             <h2 id="scenario-modal-title"></h2>
             <p id="scenario-modal-content"></p>
+            <p id="scenario-modal-result"></p>
             <div class="scenario-message" id="scenario-modal-message"></div>
+
             <div class="modal-buttons">
                 <button class="btn btn-success" id="continue-game-btn">Continue to Game</button>
             </div>
@@ -412,7 +420,7 @@
     <div class="modal" id="fact-modal">
         <div class="modal-content">
             <h2 id="modal-title"></h2>
-            <div class="modal-lesson" id="modal-lesson"></div>
+            <p id="modal-lesson"></p>
             <div class="modal-message" id="modal-message"></div>
             <div class="modal-buttons">
                 <button class="btn btn-primary" id="next-level-btn">Next Level</button>
@@ -445,28 +453,32 @@
 
                     this.bcpFacts = {
                         1: {
-                            title: "The Great Coffee Spill Crisis",
-                            content: "In 2019, a panicked intern at a tech firm spilled an entire cup of coffee onto the main server. The Company had no BCP or redundant system.\n\nResults: 6 hours of downtime, no access to email and a new office rule: no beverages near IT equipment.",
-                            lesson: "Lesson: Protect your assets and your coffee",
-                            message: "Crisis Averted! Remember: No drinks near servers"
+                            title: "☕ The Great Coffee Catastrophe",
+                            content: "Picture this: 2019, bustling tech office, nervous intern with a steaming cup of joe. One clumsy moment later—SPLASH! Coffee meets main server in an epic showdown.💥 ",
+                            result: "The aftermath: 6 hours of digital darkness, zero emails, and one very sheepish intern. Plot twist? No backup plan existed!",
+                            lesson: "💡 Golden Rule: Protect your servers AND your caffeine habits!",
+                            message: "☕ Crisis Brewing... I mean, AVERTED! New office motto: 'Coffee stays, servers stay dry!'"
                         },
                         2: {
-                            title: "The Wi-Fi Apocalypse",
-                            content: "A famous retail chain's entire branch network went down because someone unplugged the router to charge their phone.\n\nResults: No internet, no BCP call tree and no sales for 4 hours",
-                            lesson: "Lesson: Always plan for the human factor, and maybe invest in a multi-port charger.",
-                            message: "Wi-Fi restored! And so are sales."
+                            title: "📶 The Great Wi-Fi Wipeout",
+                            content: "A major retail chain's worst nightmare unfolded when an employee needed to charge their phone. The solution? Unplug the main router, obviously! ",
+                            result: "Chaos ensued: Network flatlined, sales plummeted, and 4 hours later, someone finally asked, 'Wait, where's the internet?",
+                            lesson: "🎯 Pro Tip: Plan for human creativity—it's more unpredictable than any cyberattack!",
+                            message: "📶 Connection restored! Sales team can breathe again (and everyone got a charging station)."
                         },
                         3: {
-                            title: "The Mystery IT Guy",
-                            content: "During a planned data center drill, the company realized no one knew how to initiate the recovery plan because the IT guy had left... 3 years ago. There was no updated contact list.",
-                            lesson: "Lesson: Update your escalation matrix before your IT guy turns into an urban legend",
-                            message: "Someone call IT!"
+                            title: "👻 The Vanishing IT Wizard",
+                            content: "Emergency drill day arrives! Time to activate the disaster recovery plan. There's just one tiny problem—the only person who knew the process had mysteriously disappeared... three years ago.",
+                            result: "🔍 The great hunt began: Dusty manuals, forgotten passwords, and the realization that 'Dave from IT' had become office folklore.",
+                            lesson: "📋 Reality Check: Keep your contact lists fresher than your office donuts!",
+                            message: "🔧 IT Support located! (Turns out Dave's been working two blocks away this whole time.)"
                         },
                         4: {
-                            title: "The Zombie Invasion Tabletop",
-                            content: "A team ran BCP tabletop exercise using a zombie outbreak scenario. It went viral and the fake news reached the local media. The company had to issue a press release clarifying it wasn't real",
-                            lesson: "Lesson: Creative BCP scenarios are great: just remember to tell everyone it's a drill.",
-                            message: "Outbreak contained. Next drill: alien invasion?"
+                            title: "🧟 The Zombie Drill Disaster",
+                            content: "Creative team decides to spice up their Business Continuity Plan exercise with a zombie apocalypse scenario.",
+                            result: "Plot twist: The 'classified drill' leaked, went viral, and suddenly local news was asking about the 'undead threat' Cue frantic damage control and one very awkward press conference explaining that zombies were NOT actually invading the office.",
+                            lesson: "🎭 Creative scenarios = engagement gold, but maybe add a 'THIS IS ONLY A DRILL' disclaimer!",
+                            message: "🧟‍♂️ Zombie threat neutralized! Next drill theme: Space invasion (with proper disclaimers)."
                         }
                     };
 
@@ -494,6 +506,7 @@
                     const fact = this.bcpFacts[this.currentLevel];
                     document.getElementById('scenario-modal-title').textContent = fact.title;
                     document.getElementById('scenario-modal-content').textContent = fact.content;
+                    document.getElementById('scenario-modal-result').textContent = fact.result;
                     document.getElementById('scenario-modal-message').textContent = "Ready to handle this crisis? Let's start the game!";
 
                     document.getElementById('scenario-modal').style.display = 'block';
@@ -836,8 +849,8 @@
 
                 showBCPFact() {
                     const fact = this.bcpFacts[this.currentLevel];
-                    
-                    document.getElementById('modal-title').textContent = "Level Complete!";
+
+                    document.getElementById('modal-title').textContent = fact.title;
                     document.getElementById('modal-lesson').textContent = fact.lesson;
                     document.getElementById('modal-message').textContent = fact.message;
 
