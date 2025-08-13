@@ -1,0 +1,31 @@
+<div id="userDetails"></div>
+
+<script>
+  // Helper function to get current site URL
+  function getCurrentSiteUrl() {
+    return window.location.protocol + '//' + window.location.host + window.location.pathname.split('sitePages')[0];
+  }
+  
+  var siteUrl = getCurrentSiteUrl();
+  var restUrl = siteUrl + '_api/web/currentuser';
+
+  fetch(restUrl, {
+    headers: {
+      'Accept': 'application/json;odata=verbose',
+      'Content-Type': 'application/json;odata=verbose'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    var user = data.d;
+    document.getElementById('userDetails').innerHTML = 
+      'User: ' + user.Title + '<br>' +
+      'Email: ' + user.Email + '<br>' +
+      'Login: ' + user.LoginName + '<br>' +
+      'ID: ' + user.Id;
+  })
+  .catch(error => {
+    document.getElementById('userDetails').innerHTML = 'Error fetching user details. See console for details.';
+    console.error(error);
+  });
+</script>
